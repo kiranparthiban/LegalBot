@@ -49,6 +49,84 @@ def handle_user_input(prompt: str, chat_id: str):
                 active_chat["generated_draft"] = updated_draft
                 active_chat["history"].append(AIMessage(content="I have updated the document based on your feedback. Please review the changes."))
     st.rerun()
+import re
+
+def format_document_content(content: str) -> str:
+    """
+    Format raw AI-generated legal draft into a clean, readable legal document.
+    - Normalizes whitespace
+    - Formats headings
+    - Capitalizes clause titles
+    - Numbers main sections
+    - Adds consistent indentation
+    """
+
+    # Step 1: Remove extra blank lines
+    content = re.sub(r'\n\s*\n+', '\n\n', content.strip())
+
+    # Step 2: Capitalize and bold common legal headings
+    headings = [
+        "agreement", "parties", "definitions", "terms", "termination",
+        "confidentiality", "governing law", "dispute resolution",
+        "miscellaneous", "signatures", "witnesseth", "now, therefore"
+    ]
+    for heading in headings:
+        pattern = rf"(?<=\n)({heading})(?=\n)"
+        content = re.sub(pattern, lambda m: m.group(1).upper(), content, flags=re.IGNORECASE)
+
+    # Step 3: Add numbering to major clauses (if not already numbered)
+    lines = content.split('\n')
+    numbered_lines = []
+    section_number = 1
+
+    for line in lines:
+        # Treat as heading if ALL CAPS or matches section keywords
+        if line.strip().upper() in [h.upper() for h in headings] or line.strip().endswith(":"):
+            numbered_lines.append(f"{section_number}. {line.strip().upper()}")
+            section_number += 1
+        else:
+            # Add indentation to regular paragraph lines
+            numbered_lines.append("    " + line.strip())
+
+    formatted = '\n\n'.join(numbered_lines)
+
+    # Step 4: Ensure final newline
+    return formatted.strip() + "\n"
+def clean_legal_document(raw_text: str) -> str:
+    """
+    Cleans and normalizes the raw legal text:
+    - Removes extra spaces
+    - Fixes punctuation spacing
+    - Standardizes line breaks
+    """
+    import re
+
+    text = raw_text.strip()
+    text = re.sub(r'\s+', ' ', text)  # Collapse multiple spaces
+    text = re.sub(r'\s([.,;:])', r'\1', text)  # Remove space before punctuation
+    text = re.sub(r'\n\s*\n+', '\n\n', text)  # Normalize newlines
+    return text.strip()
+import re
+
+def extract_document_details(text: str) -> dict:
+    """
+    Extracts basic structured fields from a legal document draft.
+    You can replace this with more advanced NLP later.
+    """
+
+    def find(pattern, fallback="Not Found"):
+        match = re.search(pattern, text, re.IGNORECASE)
+        return match.group(1).strip() if match else fallback
+
+    details = {
+        "party_a": find(r"This agreement is made between\s+(.*?)\s+and"),
+        "party_b": find(r"and\s+(.*?)\s+on"),  # tweak based on your draft pattern
+        "effective_date": find(r"effective\s+on\s+([A-Za-z0-9,\s]+)[\.\n]"),
+        "term": find(r"shall remain in effect for\s+([A-Za-z0-9\s]+)[\.\n]"),
+        "jurisdiction": find(r"governed by the laws of\s+([A-Za-z\s]+)[\.\n]")
+    }
+
+    return details
 
 def display_chat_interface(chat_id: str, api_key: str):
     """Renders the main UI for conversation and document drafting."""
