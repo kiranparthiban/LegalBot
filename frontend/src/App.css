@@ -1,0 +1,44 @@
+/* App-specific styles */
+.App {
+  text-align: center;
+}
+
+/* Custom gradient backgrounds */
+.gradient-primary {
+  background: linear-gradient(90deg, #1e3c72 0%, #2a5298 100%);
+}
+
+.gradient-secondary {
+  background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+}
+
+.gradient-success {
+  background: linear-gradient(90deg, #28a745 0%, #20c997 100%);
+}
+
+/* Hover effects */
+.hover-lift {
+  transition: all 0.3s ease;
+}
+
+.hover-lift:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Loading animations */
+@keyframes pulse {
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+.pulse {
+  animation: pulse 2s infinite;
+}
